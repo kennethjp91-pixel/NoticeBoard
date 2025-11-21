@@ -2,10 +2,9 @@
 
 import * as React from "react";
 import { MapPin, Clock } from "lucide-react";
-import { formatDistanceToNow } from "date-fns"; // We might need to install date-fns or just use a simple helper
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, formatTimeAgo } from "@/lib/utils";
 import type { Notice } from "@/types";
 
 interface NoticeCardProps {
@@ -29,7 +28,7 @@ export function NoticeCard({ notice, onClick, className }: NoticeCardProps) {
         return colors[notice.category] || 'bg-card border-ink/10';
     }, [notice.category]);
 
-    const timeAgo = new Date(notice.createdAt).toLocaleDateString();
+    const timeAgo = formatTimeAgo(notice.createdAt);
 
     return (
         <Card
