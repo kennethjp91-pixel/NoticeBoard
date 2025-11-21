@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { supabase } from "./supabase";
 import type { User } from "@/types";
 
 interface AuthContextType {
@@ -18,50 +19,110 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Simulate checking session
-        const timer = setTimeout(() => {
-            const storedUser = localStorage.getItem("hnb_user");
-            if (storedUser) {
-                setUser(JSON.parse(storedUser));
+        // Check active session
+        const checkSession = async () => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.user) {
+                    // Fetch profile
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', session.user.id)
+                        .single();
+
+                    setUser({
+                        id: session.user.id,
+                        email: session.user.email!,
+                        isPro: profile?.is_pro || false,
+                        createdAt: session.user.created_at,
+                    });
+                }
+            } catch (error) {
+                console.error("Error checking session:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        checkSession();
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (session?.user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+
+                setUser({
+                    id: session.user.id,
+                    email: session.user.email!,
+                    isPro: profile?.is_pro || false,
+                    createdAt: session.user.created_at,
+                });
+            } else {
+                setUser(null);
             }
             setIsLoading(false);
-        }, 500);
-        return () => clearTimeout(timer);
+        });
+
+        return () => subscription.unsubscribe();
     }, []);
 
     const signIn = async () => {
         setIsLoading(true);
-        // Simulate network delay
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        // For MVP, we'll use anonymous sign-in or magic link. 
+        // Let's use anonymous for "quiet" feel if possible, or just Google/Email.
+        // The user didn't specify auth method, but "light auth" implies easy.
+        // Let's try Google for now as it's standard, or just a simple email OTP.
+        // Actually, for "Human Notice Board", maybe just anonymous?
+        // But we need to track users.
+        // Let's stick to Google for simplicity in this demo, or just warn if not configured.
+        // Wait, the prompt said "Light auth... Users don't need to show any identity publicly".
+        // I'll implement a simple "Sign in with Google" or just a placeholder that *calls* supabase.auth.signInWithOAuth.
 
-        const mockUser: User = {
-            id: "user_" + Math.random().toString(36).substr(2, 9),
-            email: "demo@example.com",
-            isPro: false,
-            createdAt: new Date().toISOString(),
-        };
-
-        setUser(mockUser);
-        localStorage.setItem("hnb_user", JSON.stringify(mockUser));
-        setIsLoading(false);
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/board`
+                }
+            });
+            if (error) throw error;
+        } catch (error) {
+            console.error("Error signing in:", error);
+            alert("Failed to sign in. Make sure Google Auth is enabled in Supabase.");
+            setIsLoading(false);
+        }
     };
 
     const signOut = async () => {
         setIsLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await supabase.auth.signOut();
         setUser(null);
-        localStorage.removeItem("hnb_user");
         setIsLoading(false);
     };
 
     const upgradeToPro = async () => {
         if (!user) return;
-        setIsLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        const updatedUser = { ...user, isPro: true };
-        setUser(updatedUser);
-        localStorage.setItem("hnb_user", JSON.stringify(updatedUser));
-        setIsLoading(false);
+        // In a real app, this would redirect to Stripe.
+        // For MVP, we'll just update the profile in Supabase.
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ is_pro: true })
+                .eq('id', user.id);
+
+            if (error) throw error;
+
+            // Optimistic update
+            setUser({ ...user, isPro: true });
+        } catch (error) {
+            console.error("Error upgrading:", error);
+            alert("Failed to upgrade.");
+        }
     };
 
     return (
