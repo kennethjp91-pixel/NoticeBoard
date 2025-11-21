@@ -26,6 +26,30 @@ export default function BoardPage() {
     const [userPostCount, setUserPostCount] = useState(0);
     const [filterCategory, setFilterCategory] = useState<string>('all');
 
+    // Fetch user's post count from database
+    useEffect(() => {
+        const fetchUserPostCount = async () => {
+            if (!user) {
+                setUserPostCount(0);
+                return;
+            }
+
+            try {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('post_count')
+                    .eq('id', user.id)
+                    .single();
+
+                setUserPostCount(profile?.post_count || 0);
+            } catch (error) {
+                console.error("Error fetching post count:", error);
+            }
+        };
+
+        fetchUserPostCount();
+    }, [user]);
+
     // Fetch notices
     useEffect(() => {
         const fetchNotices = async () => {
@@ -117,7 +141,8 @@ export default function BoardPage() {
         if (!user) return;
 
         try {
-            const { error } = await supabase.from('notices').insert({
+            // Insert the notice
+            const { error: noticeError } = await supabase.from('notices').insert({
                 user_id: user.id,
                 category: data.category,
                 title: data.title,
@@ -129,11 +154,20 @@ export default function BoardPage() {
                 is_time_sensitive: data.isTimeSensitive
             });
 
-            if (error) throw error;
+            if (noticeError) throw noticeError;
 
-            // Optimistic update is handled by realtime subscription usually, 
-            // but we can also add it manually if realtime is slow.
-            // For now, let's rely on realtime or just re-fetch.
+            // Update post count in profiles table
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .update({
+                    post_count: userPostCount + 1,
+                    last_post_date: new Date().toISOString()
+                })
+                .eq('id', user.id);
+
+            if (profileError) throw profileError;
+
+            // Update local state
             setUserPostCount(prev => prev + 1);
             setIsCreateModalOpen(false);
         } catch (error) {
