@@ -1,26 +1,130 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-muted-red: var(--muted-red);
+  --color-muted-blue: var(--muted-blue);
+  --color-mustard: var(--mustard);
+
+  /* Semantic Category Colors */
+  --color-cat-help-bg: var(--cat-help-bg);
+  --color-cat-help-border: var(--cat-help-border);
+  --color-cat-help-text: var(--cat-help-text);
+
+  --color-cat-personals-bg: var(--cat-personals-bg);
+  --color-cat-personals-border: var(--cat-personals-border);
+  --color-cat-personals-text: var(--cat-personals-text);
+
+  --color-cat-alert-bg: var(--cat-alert-bg);
+  --color-cat-alert-border: var(--cat-alert-border);
+  --color-cat-alert-text: var(--cat-alert-text);
+
+  --color-cat-market-bg: var(--cat-market-bg);
+  --color-cat-market-border: var(--cat-market-border);
+  --color-cat-market-text: var(--cat-market-text);
+
+  --color-cat-musings-bg: var(--cat-musings-bg);
+  --color-cat-musings-border: var(--cat-musings-border);
+  --color-cat-musings-text: var(--cat-musings-text);
+
+  --color-cat-appreciation-bg: var(--cat-appreciation-bg);
+  --color-cat-appreciation-border: var(--cat-appreciation-border);
+  --color-cat-appreciation-text: var(--cat-appreciation-text);
+
+  --color-cat-question-bg: var(--cat-question-bg);
+  --color-cat-question-border: var(--cat-question-border);
+  --color-cat-question-text: var(--cat-question-text);
+
+  --font-sans: var(--font-inter), sans-serif;
+  --font-marker: var(--font-patrick-hand), cursive;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* Light Mode - "Paper Day" */
+  --background: #FAF5EF;
+  --foreground: #222222;
+  --paper: #FAF5EF;
+  --card: #FFFFFF;
+  --ink: #222222;
+  --muted-red: #C7544A;
+  --muted-blue: #2F5F82;
+  --mustard: #D9A441;
+
+  /* Category Colors - Light */
+  --cat-help-bg: #FFF5F5;
+  --cat-help-border: #FED7D7;
+  --cat-help-text: #C53030;
+  --cat-personals-bg: #FFF0F6;
+  --cat-personals-border: #FED7E2;
+  --cat-personals-text: #D53F8C;
+  --cat-alert-bg: #FFFFF0;
+  --cat-alert-border: #FEFCBF;
+  --cat-alert-text: #B7791F;
+  --cat-market-bg: #F0FFF4;
+  --cat-market-border: #C6F6D5;
+  --cat-market-text: #2F855A;
+  --cat-musings-bg: #EBF8FF;
+  --cat-musings-border: #BEE3F8;
+  --cat-musings-text: #3182CE;
+  --cat-appreciation-bg: #FAF5FF;
+  --cat-appreciation-border: #E9D8FD;
+  --cat-appreciation-text: #805AD5;
+  --cat-question-bg: #FFFAF0;
+  --cat-question-border: #FEEBC8;
+  --cat-question-text: #DD6B20;
+}
+
+.dark {
+  /* Dark Mode - "Midnight" */
+  --background: #0F172A;
+  /* Deep Slate */
+  --foreground: #F1F5F9;
+  --paper: #0F172A;
+  --card: rgba(30, 41, 59, 0.7);
+  /* Glassmorphism base */
+  --ink: #F1F5F9;
+  --muted-red: #F87171;
+  --muted-blue: #60A5FA;
+  --mustard: #FBBF24;
+
+  /* Category Colors - Dark (Glowing/Glassy) */
+  --cat-help-bg: rgba(127, 29, 29, 0.2);
+  --cat-help-border: rgba(248, 113, 113, 0.3);
+  --cat-help-text: #FCA5A5;
+  --cat-personals-bg: rgba(131, 24, 67, 0.2);
+  --cat-personals-border: rgba(244, 114, 182, 0.3);
+  --cat-personals-text: #FBCFE8;
+  --cat-alert-bg: rgba(120, 53, 15, 0.2);
+  --cat-alert-border: rgba(251, 191, 36, 0.3);
+  --cat-alert-text: #FDE68A;
+  --cat-market-bg: rgba(20, 83, 45, 0.2);
+  --cat-market-border: rgba(74, 222, 128, 0.3);
+  --cat-market-text: #86EFAC;
+  --cat-musings-bg: rgba(30, 58, 138, 0.2);
+  --cat-musings-border: rgba(96, 165, 250, 0.3);
+  --cat-musings-text: #BFDBFE;
+  --cat-appreciation-bg: rgba(88, 28, 135, 0.2);
+  --cat-appreciation-border: rgba(167, 139, 250, 0.3);
+  --cat-appreciation-text: #E9D5FF;
+  --cat-question-bg: rgba(124, 45, 18, 0.2);
+  --cat-question-border: rgba(251, 146, 60, 0.3);
+  --cat-question-text: #FDBA74;
+}
+
+/* Custom Utilities */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
