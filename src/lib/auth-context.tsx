@@ -73,27 +73,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signIn = async () => {
         setIsLoading(true);
-        // For MVP, we'll use anonymous sign-in or magic link. 
-        // Let's use anonymous for "quiet" feel if possible, or just Google/Email.
-        // The user didn't specify auth method, but "light auth" implies easy.
-        // Let's try Google for now as it's standard, or just a simple email OTP.
-        // Actually, for "Human Notice Board", maybe just anonymous?
-        // But we need to track users.
-        // Let's stick to Google for simplicity in this demo, or just warn if not configured.
-        // Wait, the prompt said "Light auth... Users don't need to show any identity publicly".
-        // I'll implement a simple "Sign in with Google" or just a placeholder that *calls* supabase.auth.signInWithOAuth.
+        // Use Magic Link (Email OTP) as it works out of the box without Google Cloud setup
+        const email = prompt("Enter your email to sign in (Magic Link):");
+        if (!email) {
+            setIsLoading(false);
+            return;
+        }
 
         try {
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
+            const { error } = await supabase.auth.signInWithOtp({
+                email,
                 options: {
-                    redirectTo: `${window.location.origin}/board`
+                    emailRedirectTo: `${window.location.origin}/board`
                 }
             });
             if (error) throw error;
+            alert("Check your email for the magic link!");
         } catch (error) {
             console.error("Error signing in:", error);
-            alert("Failed to sign in. Make sure Google Auth is enabled in Supabase.");
+            alert("Failed to send magic link.");
+        } finally {
             setIsLoading(false);
         }
     };
