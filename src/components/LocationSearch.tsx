@@ -82,38 +82,58 @@ export function LocationSearch({ onLocationSelect, className, placeholder = "Sea
     };
 
     return (
-        <div ref={wrapperRef} className={cn("relative", className)}>
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/40" />
+        <div ref={wrapperRef} className={cn("relative group", className)}>
+            <div className="relative flex items-center">
+                <Search className="absolute left-3 w-4 h-4 text-ink/40 pointer-events-none" />
                 <Input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
+                    onFocus={() => setIsOpen(true)}
                     placeholder={placeholder}
-                    className="pl-9 pr-9 bg-white/50 border-ink/10 focus:bg-white transition-colors"
+                    className="pl-9 pr-9 bg-white/80 border-ink/10 focus:bg-white transition-all hover:border-ink/30 rounded-full shadow-sm"
                 />
-                {isSearching && (
-                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-ink/40" />
+                {isSearching ? (
+                    <Loader2 className="absolute right-3 w-4 h-4 animate-spin text-ink/40" />
+                ) : (
+                    <button
+                        onClick={handleCurrentLocation}
+                        className="absolute right-2 p-1.5 rounded-full hover:bg-ink/10 text-ink/40 hover:text-muted-blue transition-colors"
+                        title="Use Current Location"
+                    >
+                        <Navigation className="w-3.5 h-3.5" />
+                    </button>
                 )}
             </div>
 
-            {isOpen && results.length > 0 && (
-                <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-lg border border-ink/10 overflow-hidden z-50 max-h-60 overflow-y-auto">
+            {isOpen && (
+                <div className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-xl border border-ink/10 overflow-hidden z-50 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
                     <button
                         onClick={handleCurrentLocation}
-                        className="w-full text-left px-4 py-3 hover:bg-ink/5 flex items-center gap-2 text-sm font-medium text-muted-blue border-b border-ink/5"
+                        className="w-full text-left px-4 py-3 hover:bg-blue-50 flex items-center gap-3 text-sm font-medium text-muted-blue border-b border-ink/5 transition-colors"
                     >
-                        <Navigation className="w-4 h-4" />
-                        Use Current Location
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                            <Navigation className="w-4 h-4" />
+                        </div>
+                        <div>
+                            <span className="block">Use Current Location</span>
+                            <span className="text-xs text-ink/40 font-normal">Find posts near me</span>
+                        </div>
                     </button>
-                    {results.map((item, i) => (
-                        <button
-                            key={i}
-                            onClick={() => handleSelect(item)}
-                            className="w-full text-left px-4 py-2 hover:bg-ink/5 text-sm text-ink truncate"
-                        >
-                            {item.display_name}
-                        </button>
-                    ))}
+
+                    {results.length > 0 ? (
+                        results.map((item, i) => (
+                            <button
+                                key={i}
+                                onClick={() => handleSelect(item)}
+                                className="w-full text-left px-4 py-3 hover:bg-ink/5 text-sm text-ink flex items-center gap-3 transition-colors"
+                            >
+                                <MapPin className="w-4 h-4 text-ink/30" />
+                                <span className="truncate">{item.display_name}</span>
+                            </button>
+                        ))
+                    ) : query.length > 2 && !isSearching ? (
+                        <div className="px-4 py-3 text-sm text-ink/40 text-center">No results found</div>
+                    ) : null}
                 </div>
             )}
         </div>

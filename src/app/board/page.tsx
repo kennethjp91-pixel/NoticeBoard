@@ -207,19 +207,25 @@ export default function BoardPage() {
         if (filterCategory !== 'all' && notice.category !== filterCategory) return false;
 
         // Radius Filter
-        // If user has a location, filter by radius (default 10km if not set in profile)
-        // We'll assume a default of 50km for now if no profile preference, to be safe
+        // If radius is >= 1000, we consider it "Global" and show everything
+        if (radiusPreference >= 1000) return true;
+
+        // If user has a location, filter by radius
         if (location.lat && location.lng) {
+            // If notice has no location, show it only if global (handled above) or maybe hide?
+            // For now, if notice has no location (0,0), we hide it unless global.
+            if (!notice.location.lat && !notice.location.lng) return false;
+
             const distance = getDistanceFromLatLonInKm(
                 location.lat,
                 location.lng,
                 notice.location.lat,
                 notice.location.lng
             );
-            // Use user's preference or default
             return distance <= radiusPreference;
         }
 
+        // If user has NO location set, show everything (Global fallback)
         return true;
     });
 
@@ -245,7 +251,27 @@ export default function BoardPage() {
                             Notices near {location.city || "you"}
                         </h1>
 
-                        <div className="flex overflow-x-auto pb-2 md:pb-0 gap-2 no-scrollbar">
+                        <div className="flex overflow-x-auto pb-2 md:pb-0 gap-2 no-scrollbar items-center">
+                            {/* Radius Selector */}
+                            <div className="relative group mr-2">
+                                <button className="px-3 py-1.5 rounded-full text-sm font-medium bg-white text-ink/70 border border-ink/10 hover:bg-ink/5 flex items-center gap-1">
+                                    <span className="hidden sm:inline">Radius:</span> {radiusPreference >= 1000 ? "Global" : `${radiusPreference}km`}
+                                </button>
+                                <div className="absolute top-full left-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-ink/10 overflow-hidden hidden group-hover:block z-50">
+                                    {[5, 10, 25, 50, 100, 1000].map(r => (
+                                        <button
+                                            key={r}
+                                            onClick={() => setRadiusPreference(r)}
+                                            className={`w-full text-left px-4 py-2 text-sm hover:bg-ink/5 ${radiusPreference === r ? 'font-bold text-ink' : 'text-ink/70'}`}
+                                        >
+                                            {r >= 1000 ? "Global" : `${r}km`}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="h-6 w-px bg-ink/10 mx-2" />
+
                             {categories.map((cat) => (
                                 <button
                                     key={cat.id}

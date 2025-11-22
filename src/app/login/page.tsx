@@ -29,6 +29,8 @@ export default function LoginPage() {
         try {
             if (mode === 'login') {
                 await signIn(email, password);
+                // Force a router refresh to ensure auth state is picked up
+                router.refresh();
                 router.push('/board');
             } else {
                 await signUp(email, password);
