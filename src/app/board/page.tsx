@@ -26,9 +26,11 @@ export default function BoardPage() {
     const [userPostCount, setUserPostCount] = useState(0);
     const [filterCategory, setFilterCategory] = useState<string>('all');
 
-    // Fetch user's post count from database
+    const [radiusPreference, setRadiusPreference] = useState(50); // Default 50km
+
+    // Fetch user's post count and radius preference
     useEffect(() => {
-        const fetchUserPostCount = async () => {
+        const fetchUserProfile = async () => {
             if (!user) {
                 setUserPostCount(0);
                 return;
@@ -37,17 +39,20 @@ export default function BoardPage() {
             try {
                 const { data: profile } = await supabase
                     .from('profiles')
-                    .select('post_count')
+                    .select('post_count, radius_preference')
                     .eq('id', user.id)
                     .single();
 
                 setUserPostCount(profile?.post_count || 0);
+                if (profile?.radius_preference) {
+                    setRadiusPreference(profile.radius_preference);
+                }
             } catch (error) {
-                console.error("Error fetching post count:", error);
+                console.error("Error fetching profile:", error);
             }
         };
 
-        fetchUserPostCount();
+        fetchUserProfile();
     }, [user]);
 
     // Fetch notices
@@ -211,12 +216,8 @@ export default function BoardPage() {
                 notice.location.lat,
                 notice.location.lng
             );
-            // TODO: Get radius from user profile. For now hardcode 50km or use a local state if we had it.
-            // Since we don't have the profile with radius loaded here easily without fetching, 
-            // we'll use a generous default or maybe 100km.
-            // The user asked for a setting, so let's try to respect it if we can.
-            // For MVP, let's say 50km.
-            return distance <= 50;
+            // Use user's preference or default
+            return distance <= radiusPreference;
         }
 
         return true;
