@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useLocation } from "@/lib/location-context";
 import { useAuth } from "@/lib/auth-context";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LocationSearch } from "@/components/LocationSearch";
 // Actually, I'll just use a simple state-based dropdown here.
 
 import { useState, useRef, useEffect } from "react";
@@ -74,7 +75,7 @@ function UserDropdown() {
 }
 
 export function BoardHeader({ onPostClick }: { onPostClick: () => void }) {
-    const { location, requestLocation } = useLocation();
+    const { location, requestLocation, setLocation } = useLocation();
 
     return (
         <header className="sticky top-0 z-40 w-full border-b border-ink/5 bg-paper/95 backdrop-blur supports-[backdrop-filter]:bg-paper/60">
@@ -83,9 +84,18 @@ export function BoardHeader({ onPostClick }: { onPostClick: () => void }) {
                     <Link href="/" className="font-marker text-xl font-bold hidden md:block">
                         HNB
                     </Link>
-                    <div className="flex items-center gap-2 bg-white/50 px-3 py-1.5 rounded-full border border-ink/5 text-sm text-ink/80 cursor-pointer hover:bg-white transition-colors" onClick={requestLocation}>
-                        <MapPin className="h-4 w-4 text-muted-red" />
-                        <span>{location.city || "Locating..."}</span>
+                    <div className="hidden md:block w-64">
+                        <LocationSearch
+                            onLocationSelect={(loc) => {
+                                setLocation({
+                                    lat: loc.lat,
+                                    lng: loc.lng,
+                                    city: loc.city,
+                                    isManual: true
+                                });
+                            }}
+                            placeholder={location.city || "Search city..."}
+                        />
                     </div>
                 </div>
 

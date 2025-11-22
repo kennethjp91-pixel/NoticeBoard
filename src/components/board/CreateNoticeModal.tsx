@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth-context";
+import { useLocation } from "@/lib/location-context";
+import { LocationSearch } from "@/components/LocationSearch";
 import type { NoticeCategory } from "@/types";
 
 const CATEGORIES: NoticeCategory[] = ['personals', 'help', 'alert', 'market', 'musings', 'appreciation', 'question'];
@@ -19,11 +21,23 @@ interface CreateNoticeModalProps {
 
 export function CreateNoticeModal({ isOpen, onClose, onSubmit }: CreateNoticeModalProps) {
     const { user } = useAuth();
+    const { location: globalLocation } = useLocation();
     const [category, setCategory] = useState<NoticeCategory>('question');
     const [title, setTitle] = useState("");
     const [body, setBody] = useState("");
     const [isTimeSensitive, setIsTimeSensitive] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [location, setLocation] = useState<{ lat: number; lng: number; city: string } | null>(null);
+
+    useEffect(() => {
+        if (isOpen && globalLocation.lat && globalLocation.lng) {
+            setLocation({
+                lat: globalLocation.lat,
+                lng: globalLocation.lng,
+                city: globalLocation.city || "Unknown"
+            });
+        }
+    }, [isOpen, globalLocation]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -38,6 +52,7 @@ export function CreateNoticeModal({ isOpen, onClose, onSubmit }: CreateNoticeMod
             title,
             body,
             isTimeSensitive,
+            location: location || { lat: 0, lng: 0, city: "Unknown" } // Fallback
         });
 
         setIsSubmitting(false);
@@ -92,6 +107,18 @@ export function CreateNoticeModal({ isOpen, onClose, onSubmit }: CreateNoticeMod
                     <div className="text-xs text-right text-ink/40">
                         {body.length}/400
                     </div>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-ink/70">Location</label>
+                    <LocationSearch
+                        onLocationSelect={(loc) => setLocation(loc)}
+                        placeholder={location?.city || "Search city..."}
+                        className="w-full"
+                    />
+                    <p className="text-xs text-ink/40">
+                        Where is this happening? Defaults to your current location.
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-2">
