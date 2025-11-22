@@ -11,6 +11,8 @@ interface AuthContextType {
     signUp: (email: string, password: string) => Promise<void>;
     signOut: () => Promise<void>;
     upgradeToPro: () => Promise<void>;
+    updateProfile: (updates: Partial<User>) => Promise<void>;
+    updatePassword: (password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -135,8 +137,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const updateProfile = async (updates: Partial<User>) => {
+        if (!user) return;
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({
+                    username: updates.username,
+                    avatar_url: updates.avatarUrl,
+                    // radius_preference will be added here later
+                })
+                .eq('id', user.id);
+
+            if (error) throw error;
+
+            setUser({ ...user, ...updates });
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            throw error;
+        }
+    };
+
+    const updatePassword = async (password: string) => {
+        try {
+            const { error } = await supabase.auth.updateUser({ password });
+            if (error) throw error;
+        } catch (error) {
+            console.error("Error updating password:", error);
+            throw error;
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, isLoading, signIn, signUp, signOut, upgradeToPro }}>
+        <AuthContext.Provider value={{ user, isLoading, signIn, signUp, signOut, upgradeToPro, updateProfile, updatePassword }}>
             {children}
         </AuthContext.Provider>
     );
