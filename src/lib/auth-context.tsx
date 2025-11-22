@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { supabase } from "./supabase";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import type { User } from "@/types";
 
 interface AuthContextType {
@@ -20,6 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const supabase = createClientComponentClient();
 
     useEffect(() => {
         // Check active session
@@ -76,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         return () => subscription.unsubscribe();
-    }, []);
+    }, [supabase]);
 
     const signIn = async (email: string, password: string) => {
         setIsLoading(true);
@@ -86,6 +87,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 password,
             });
             if (error) throw error;
+
+            // Explicitly refresh session to ensure cookie is set and state updates
+            await supabase.auth.getSession();
+
         } catch (error: any) {
             console.error("Error signing in:", error);
             // Throw error so the UI can display it
