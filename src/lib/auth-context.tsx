@@ -39,6 +39,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         email: session.user.email!,
                         isPro: profile?.is_pro || false,
                         createdAt: session.user.created_at,
+                        username: profile?.username,
+                        avatarUrl: profile?.avatar_url,
                     });
                 }
             } catch (error) {
@@ -64,6 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     email: session.user.email!,
                     isPro: profile?.is_pro || false,
                     createdAt: session.user.created_at,
+                    username: profile?.username,
+                    avatarUrl: profile?.avatar_url,
                 });
             } else {
                 setUser(null);

@@ -1,8 +1,10 @@
-export type User = {
+export interface User {
     id: string;
     email: string;
     isPro: boolean;
     createdAt: string;
+    username?: string;
+    avatarUrl?: string;
 };
 
 export type NoticeCategory = 'help' | 'personals' | 'alert' | 'market' | 'musings' | 'appreciation' | 'question';
