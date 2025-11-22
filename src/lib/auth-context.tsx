@@ -7,7 +7,8 @@ import type { User } from "@/types";
 interface AuthContextType {
     user: User | null;
     isLoading: boolean;
-    signIn: () => Promise<void>;
+    signIn: (email: string, password: string) => Promise<void>;
+    signUp: (email: string, password: string) => Promise<void>;
     signOut: () => Promise<void>;
     upgradeToPro: () => Promise<void>;
 }
@@ -71,27 +72,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => subscription.unsubscribe();
     }, []);
 
-    const signIn = async () => {
+    const signIn = async (email: string, password: string) => {
         setIsLoading(true);
-        // Use Magic Link (Email OTP) as it works out of the box without Google Cloud setup
-        const email = prompt("Enter your email to sign in (Magic Link):");
-        if (!email) {
-            setIsLoading(false);
-            return;
-        }
-
         try {
-            const { error } = await supabase.auth.signInWithOtp({
+            const { error } = await supabase.auth.signInWithPassword({
                 email,
-                options: {
-                    emailRedirectTo: `${window.location.origin}/board`
-                }
+                password,
             });
             if (error) throw error;
-            alert("Check your email for the magic link!");
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error signing in:", error);
-            alert("Failed to send magic link.");
+            // Throw error so the UI can display it
+            throw error;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const signUp = async (email: string, password: string) => {
+        setIsLoading(true);
+        try {
+            const { error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/auth/callback`,
+                },
+            });
+            if (error) throw error;
+        } catch (error: any) {
+            console.error("Error signing up:", error);
+            throw error;
         } finally {
             setIsLoading(false);
         }
@@ -125,7 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, isLoading, signIn, signOut, upgradeToPro }}>
+        <AuthContext.Provider value={{ user, isLoading, signIn, signUp, signOut, upgradeToPro }}>
             {children}
         </AuthContext.Provider>
     );
